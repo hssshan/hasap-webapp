@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="tk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Gündelik hasabat</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root {
+    --bg: var(--tg-theme-bg-color, #17212b);
+    --card: var(--tg-theme-secondary-bg-color, #232e3c);
+    --text: var(--tg-theme-text-color, #f5f5f5);
+    --hint: var(--tg-theme-hint-color, #8b9bb0);
+    --link: var(--tg-theme-link-color, #6ab3f3);
+    --btn: var(--tg-theme-button-color, #3390ec);
+    --btn-text: var(--tg-theme-button-text-color, #fff);
+    --ok: #34c759;
+    --warn: #ff9f0a;
+    --bad: #ff453a;
+    --line: color-mix(in srgb, var(--hint) 25%, transparent);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0; padding: 12px 12px 96px;
+    background: var(--bg); color: var(--text);
+    font: 15px/1.45 -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  h1 { font-size: 18px; margin: 4px 0 14px; }
+  section { background: var(--card); border-radius: 12px; padding: 12px; margin-bottom: 12px; }
+  section > h2 {
+    font-size: 14px; margin: 0 0 10px; color: var(--hint);
+    text-transform: uppercase; letter-spacing: .04em; font-weight: 600;
+  }
+  .row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .row:last-child { margin-bottom: 0; }
+  label { flex: 1 1 auto; min-width: 0; font-size: 14px; }
+  input {
+    background: var(--bg); color: var(--text);
+    border: 1px solid var(--line); border-radius: 8px;
+    padding: 9px 10px; font-size: 15px; width: 100%;
+    font-family: inherit;
+  }
+  input:focus { outline: none; border-color: var(--btn); }
+  input.amount { flex: 0 0 118px; width: 118px; text-align: right; font-variant-numeric: tabular-nums; }
+  input.count  { flex: 0 0 84px;  width: 84px;  text-align: right; }
+  input.name   { flex: 1 1 auto; }
+  .item { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+  .del {
+    flex: 0 0 34px; height: 34px; border: none; border-radius: 8px;
+    background: color-mix(in srgb, var(--bad) 18%, transparent);
+    color: var(--bad); font-size: 20px; line-height: 1; cursor: pointer;
+  }
+  .add {
+    width: 100%; padding: 10px; margin-top: 4px;
+    background: transparent; color: var(--link);
+    border: 1px dashed var(--line); border-radius: 8px;
+    font-size: 14px; font-family: inherit; cursor: pointer;
+  }
+  .total {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line);
+    font-weight: 600; font-variant-numeric: tabular-nums;
+  }
+  .note { font-size: 13px; color: var(--hint); margin-top: 6px; }
+  .warn { color: var(--warn); }
+  .bad  { color: var(--bad); }
+  .ok   { color: var(--ok); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .summary { position: sticky; bottom: 0; }
+  .summary .total { border-top: none; font-size: 16px; }
+  details > summary { cursor: pointer; color: var(--link); font-size: 14px; padding: 4px 0; }
+  .draftbar {
+    display: flex; align-items: center; gap: 8px;
+    background: color-mix(in srgb, var(--warn) 16%, transparent);
+    border: 1px solid color-mix(in srgb, var(--warn) 40%, transparent);
+    border-radius: 10px; padding: 9px 11px; margin-bottom: 12px; font-size: 13px;
+  }
+  .draftbar span { flex: 1 1 auto; }
+  .draftbar button {
+    flex: 0 0 auto; background: transparent; color: var(--link);
+    border: 1px solid var(--line); border-radius: 7px;
+    padding: 6px 10px; font-size: 13px; font-family: inherit; cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<h1>📋 Gündelik maliýe hasabaty</h1>
+
+<div id="draftBar" style="display:none" class="draftbar">
+  <span id="draftMsg"></span>
+  <button type="button" id="draftClear">Täze başlamak</button>
+</div>
+
+<section>
+  <h2>Sene</h2>
+  <div class="row">
+    <label for="date">Hasabatyň senesi</label>
+    <input type="date" id="date" class="amount" style="width:150px;flex:0 0 150px">
+  </div>
+</section>
+
+<section>
+  <h2>Girdeji</h2>
+  <div class="row"><label for="r">Z-hasabat girdejisi</label><input class="amount num" id="r" inputmode="decimal" placeholder="0"></div>
+  <div class="row"><label for="bk">└ Bakery</label><input class="amount num" id="bk" inputmode="decimal" placeholder="0"></div>
+  <div class="row"><label for="dl">└ Eltip bermek</label><input class="amount num" id="dl" inputmode="decimal" placeholder="0"></div>
+  <div class="row"><label for="ds">└ Arzanladyşlar</label><input class="amount num" id="ds" inputmode="decimal" placeholder="0"></div>
+</section>
+
+<section>
+  <h2>Iş görkezijileri</h2>
+  <div class="row"><label for="rc">Çekleriň sany</label><input class="count num" id="rc" inputmode="numeric" placeholder="0"></div>
+  <div class="row"><label for="dc">Eltip bermeleriň sany</label><input class="count num" id="dc" inputmode="numeric" placeholder="0"></div>
+  <div class="row"><label for="df">Eltip bermek hyzmaty</label><input class="amount num" id="df" inputmode="decimal" placeholder="0"></div>
+  <div class="row"><label for="sc">Hyzmat haky (%)</label><input class="amount num" id="sc" inputmode="decimal" placeholder="0"></div>
+  <div class="note" id="avg">Ortaça çek: —</div>
+</section>
+
+<section>
+  <h2>Ýygnalan serişdeler</h2>
+  <div class="row"><label for="cash">Itogo nagt</label><input class="amount num" id="cash" inputmode="decimal" placeholder="0"></div>
+  <div class="row"><label for="bn">Bank / Kart</label><input class="amount num" id="bn" inputmode="decimal" placeholder="0"></div>
+  <div class="row"><label for="cr">Berlen karzlar</label><input class="amount num" id="cr" inputmode="decimal" placeholder="0"></div>
+  <div class="row"><label for="ci">Gelen karz tölegi (+)</label><input class="amount num" id="ci" inputmode="decimal" placeholder="0"></div>
+  <div class="total"><span>Karz bilen jemi</span><span id="cashTotal">0</span></div>
+</section>
+
+<section>
+  <h2>Çykdajylar</h2>
+  <div id="expenses"></div>
+  <button class="add" type="button" id="addExpense">+ Çykdajy setirini goşmak</button>
+  <div class="total"><span>Setirleriň jemi</span><span id="expSum">0</span></div>
+  <div class="row" style="margin-top:8px"><label for="expTotal">Itogo çykdajylar</label><input class="amount num" id="expTotal" inputmode="decimal" placeholder="0"></div>
+  <div class="note" id="expCheck"></div>
+</section>
+
+<section>
+  <h2>🥐 Bakery (öz kassasy)</h2>
+  <div class="row"><label for="b_r">Z-hasabat girdejisi</label><input class="amount num" id="b_r" inputmode="decimal" placeholder="0"></div>
+  <div class="row"><label for="b_ds">Arzanladyşlar</label><input class="amount num" id="b_ds" inputmode="decimal" placeholder="0"></div>
+  <div class="row"><label for="b_cr">Berlen karzlar</label><input class="amount num" id="b_cr" inputmode="decimal" placeholder="0"></div>
+  <div class="row"><label for="b_bn">Bank / Kart</label><input class="amount num" id="b_bn" inputmode="decimal" placeholder="0"></div>
+  <div class="row"><label for="b_cash">Itogo nagt</label><input class="amount num" id="b_cash" inputmode="decimal" placeholder="0"></div>
+  <div class="row"><label for="b_exp">Çykdajy</label><input class="amount num" id="b_exp" inputmode="decimal" placeholder="0"></div>
+</section>
+
+<section>
+  <h2>🏷️ Arzanladyşlar (göterim boýunça)</h2>
+  <div id="tiers"></div>
+  <button class="add" type="button" id="addTier">+ Göterim goşmak</button>
+  <div class="total"><span>Jemi</span><span id="tierSum">0</span></div>
+  <div class="note" id="tierCheck"></div>
+</section>
+
+<section>
+  <h2>🤝 Berlen karzlar (adamlar boýunça)</h2>
+  <div id="credits"></div>
+  <button class="add" type="button" id="addCredit">+ Adam goşmak</button>
+  <div class="total"><span>Jemi kredit</span><span id="credSum">0</span></div>
+  <div class="note" id="credCheck"></div>
+</section>
+
+<section>
+  <details>
+    <summary>📋 Balans (Algylar / Bergiler)</summary>
+    <div style="margin-top:10px">
+      <div class="row"><label for="alg">Algylar (bize bergili)</label><input class="amount num" id="alg" inputmode="decimal" placeholder="0"></div>
+      <div class="row"><label for="brg">Bergiler (biz bergili)</label><input class="amount num" id="brg" inputmode="decimal" placeholder="0"></div>
+      <div class="row"><label for="bz">└ Bazar üpjünçileri</label><input class="amount num" id="bz" inputmode="decimal" placeholder="0"></div>
+      <div class="row"><label for="fr">└ Firmalar</label><input class="amount num" id="fr" inputmode="decimal" placeholder="0"></div>
+    </div>
+  </details>
+</section>
+
+<section class="summary">
+  <div class="total"><span>Arassa peýda</span><span id="profit">0 TMT</span></div>
+  <div class="note" id="sizeNote"></div>
+</section>
+
+<script>
+"use strict";
+const tg = window.Telegram ? window.Telegram.WebApp : null;
+if (tg) { tg.ready(); tg.expand(); }
+
+const $ = id => document.getElementById(id);
+const fmt = n => (Math.round(n * 100) / 100).toLocaleString("en-US");
+const num = el => {
+  // Accept "1,219", "1 219", "1219.5" — the accountant types all three.
+  const v = parseFloat(String(el.value).replace(/[\s,]/g, ""));
+  return isFinite(v) ? v : 0;
+};
+
+/* ---------- dynamic row builders ---------- */
+function addRow(container, fields) {
+  const div = document.createElement("div");
+  div.className = "item";
+  fields.forEach(f => {
+    const i = document.createElement("input");
+    i.className = f.cls;
+    i.placeholder = f.ph;
+    if (f.mode) i.inputMode = f.mode;
+    i.addEventListener("input", recalc);
+    div.appendChild(i);
+  });
+  const del = document.createElement("button");
+  del.type = "button";
+  del.className = "del";
+  del.textContent = "×";
+  del.setAttribute("aria-label", "Setiri pozmak");
+  del.onclick = () => { div.remove(); recalc(); };
+  div.appendChild(del);
+  container.appendChild(div);
+  return div;
+}
+
+const expenseFields = [
+  { cls: "name",   ph: "Näme üçin (mysal: Aylyk Iyul Mariya kassir)" },
+  { cls: "amount", ph: "0", mode: "decimal" },
+];
+const tierFields = [
+  { cls: "count",  ph: "%", mode: "numeric" },
+  { cls: "amount", ph: "0", mode: "decimal" },
+  { cls: "name",   ph: "Kimler (otur bilen aýyryň)" },
+];
+const creditFields = [
+  { cls: "name",   ph: "Adyňyz" },
+  { cls: "amount", ph: "0", mode: "decimal" },
+];
+
+$("addExpense").onclick = () => addRow($("expenses"), expenseFields).querySelector("input").focus();
+$("addTier").onclick    = () => addRow($("tiers"), tierFields).querySelector("input").focus();
+$("addCredit").onclick  = () => addRow($("credits"), creditFields).querySelector("input").focus();
+
+function readRows(container, map) {
+  return Array.from(container.children).map(row => {
+    const ins = row.querySelectorAll("input");
+    return map(ins);
+  }).filter(Boolean);
+}
+const getExpenses = () => readRows($("expenses"), i =>
+  (i[0].value.trim() || num(i[1])) ? [i[0].value.trim(), num(i[1])] : null);
+const getTiers = () => readRows($("tiers"), i =>
+  (num(i[0]) || num(i[1])) ? [num(i[0]), num(i[1]), i[2].value.trim()] : null);
+const getCredits = () => readRows($("credits"), i =>
+  (i[0].value.trim() || num(i[1])) ? [i[0].value.trim(), num(i[1])] : null);
+
+/* ---------- live totals and cross-checks ---------- */
+function recalc() {
+  const rev = num($("r")), expTotal = num($("expTotal"));
+  const profit = rev - expTotal;
+  $("profit").textContent = fmt(profit) + " TMT";
+  $("profit").className = profit < 0 ? "bad" : "ok";
+
+  const rc = num($("rc"));
+  $("avg").textContent = rc > 0
+    ? "Ortaça çek: " + fmt(rev / rc) + " TMT"
+    : "Ortaça çek: —";
+
+  $("cashTotal").textContent = fmt(num($("cash")) + num($("ci")));
+
+  const expSum = getExpenses().reduce((s, e) => s + e[1], 0);
+  $("expSum").textContent = fmt(expSum);
+  const diff = expSum - expTotal;
+  if (expTotal > 0 && Math.abs(diff) > 1) {
+    $("expCheck").className = "note warn";
+    $("expCheck").textContent = "⚠️ Setirler bilen jeminiň tapawudy: " + fmt(Math.abs(diff)) + " TMT";
+  } else if (expTotal > 0) {
+    $("expCheck").className = "note ok";
+    $("expCheck").textContent = "✓ Setirler jemi bilen deň gelýär";
+  } else { $("expCheck").textContent = ""; }
+
+  const tierSum = getTiers().reduce((s, t) => s + t[1], 0);
+  $("tierSum").textContent = fmt(tierSum);
+  const ds = num($("ds"));
+  $("tierCheck").className = "note " + (ds > 0 && Math.abs(tierSum - ds) > 1 ? "warn" : "ok");
+  $("tierCheck").textContent = ds > 0
+    ? (Math.abs(tierSum - ds) > 1
+        ? "⚠️ Ýokardaky arzanladyş " + fmt(ds) + " TMT — tapawut " + fmt(Math.abs(tierSum - ds))
+        : "✓ Arzanladyşlar deň gelýär")
+    : "";
+
+  const credSum = getCredits().reduce((s, c) => s + c[1], 0);
+  $("credSum").textContent = fmt(credSum);
+  const cr = num($("cr"));
+  $("credCheck").className = "note " + (cr > 0 && Math.abs(credSum - cr) > 1 ? "warn" : "ok");
+  $("credCheck").textContent = cr > 0
+    ? (Math.abs(credSum - cr) > 1
+        ? "⚠️ Ýokardaky karz " + fmt(cr) + " TMT — tapawut " + fmt(Math.abs(credSum - cr))
+        : "✓ Karzlar deň gelýär")
+    : "";
+
+  updateButton();
+  saveDraft();   // every recalculation is also a save point
+}
+
+/* ---------- payload ---------- */
+function payload() {
+  const p = { v: 1, d: $("date").value };
+  [["r","r"],["bk","bk"],["dl","dl"],["ds","ds"],["df","df"],["sc","sc"],
+   ["cash","cash"],["bn","bn"],["cr","cr"],["ci","ci"],
+   ["alg","alg"],["brg","brg"],["bz","bz"],["fr","fr"],["expTotal","exp"]
+  ].forEach(([id, key]) => { const v = num($(id)); if (v) p[key] = v; });
+  ["rc","dc"].forEach(id => { const v = num($(id)); if (v) p[id] = v; });
+
+  const b = {};
+  [["b_r","r"],["b_ds","ds"],["b_cr","cr"],["b_bn","bn"],["b_cash","cash"],["b_exp","exp"]]
+    .forEach(([id, key]) => { const v = num($(id)); if (v) b[key] = v; });
+  if (Object.keys(b).length) p.b = b;
+
+  const e = getExpenses(), t = getTiers(), c = getCredits();
+  if (e.length) p.e = e;
+  if (t.length) p.t = t;
+  if (c.length) p.c = c;
+  return p;
+}
+
+/* Telegram caps sendData at 4096 bytes — warn before it silently fails. */
+function updateButton() {
+  if (!tg) return;
+  const json = JSON.stringify(payload());
+  const bytes = new TextEncoder().encode(json).length;
+  const tooBig = bytes > 4000;
+  const noDate = !$("date").value;
+  const noData = !num($("r")) && !num($("expTotal"));
+
+  $("sizeNote").className = "note" + (tooBig ? " bad" : "");
+  $("sizeNote").textContent = tooBig
+    ? "⚠️ Hasabat gaty uzyn (" + bytes + "/4000 baýt). Käbir setirleri aýryň."
+    : "";
+
+  if (noDate)      tg.MainButton.setText("Senäni saýlaň");
+  else if (noData) tg.MainButton.setText("Sanlary giriziň");
+  else if (tooBig) tg.MainButton.setText("Gaty uzyn");
+  else             tg.MainButton.setText("✅ Hasabaty ibermek");
+
+  if (noDate || noData || tooBig) tg.MainButton.disable();
+  else tg.MainButton.enable();
+  tg.MainButton.show();
+}
+
+if (tg) {
+  tg.MainButton.onClick(() => {
+    const json = JSON.stringify(payload());
+    if (new TextEncoder().encode(json).length > 4000) return;
+    if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred("success");
+    clearDraft();        // submitted — the draft has served its purpose
+    tg.sendData(json);   // Telegram delivers this to the bot, then closes the app
+  });
+}
+
+/* ---------- draft saving ----------
+   Telegram tears the Mini App down when it's closed or backgrounded, so a
+   half-typed report would be lost. Keep it in localStorage on this phone;
+   nothing leaves the device until the form is actually submitted. */
+const DRAFT_KEY = "hasap-draft-v1";
+let saveTimer = null;
+
+function saveDraft() {
+  // Debounced: typing a 5-digit number shouldn't write five times.
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    try {
+      const p = payload();
+      // An empty form writes nothing — and must never DELETE an existing draft.
+      // If a restore ever fails, reopening the app would otherwise wipe the
+      // saved report before the user could retry. Clearing is explicit only:
+      // submitting, or tapping "Täze başlamak".
+      if (Object.keys(p).length <= 2) return;
+      p._at = Date.now();
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(p));
+    } catch (e) { /* private mode / quota — drafts are a convenience, not a promise */ }
+  }, 400);
+}
+
+function clearDraft() {
+  try { localStorage.removeItem(DRAFT_KEY); } catch (e) {}
+}
+
+function fillRows(container, fields, rowsData) {
+  container.innerHTML = "";
+  rowsData.forEach(vals => {
+    const row = addRow(container, fields);
+    const inputs = row.querySelectorAll("input");
+    vals.forEach((v, i) => { if (inputs[i]) inputs[i].value = v; });
+  });
+}
+
+function restoreDraft() {
+  let d;
+  try {
+    const stored = localStorage.getItem(DRAFT_KEY);
+    if (!stored) return false;
+    d = JSON.parse(stored);
+  } catch (e) { return false; }
+  if (!d || typeof d !== "object") return false;
+
+  if (d.d) $("date").value = d.d;
+  [["r","r"],["bk","bk"],["dl","dl"],["ds","ds"],["df","df"],["sc","sc"],
+   ["cash","cash"],["bn","bn"],["cr","cr"],["ci","ci"],
+   ["alg","alg"],["brg","brg"],["bz","bz"],["fr","fr"],["expTotal","exp"],
+   ["rc","rc"],["dc","dc"]
+  ].forEach(([id, key]) => { if (d[key] != null) $(id).value = d[key]; });
+
+  if (d.b) {
+    [["b_r","r"],["b_ds","ds"],["b_cr","cr"],["b_bn","bn"],["b_cash","cash"],["b_exp","exp"]]
+      .forEach(([id, key]) => { if (d.b[key] != null) $(id).value = d.b[key]; });
+  }
+
+  if (d.e && d.e.length) fillRows($("expenses"), expenseFields, d.e);
+  if (d.t && d.t.length) fillRows($("tiers"), tierFields, d.t);
+  if (d.c && d.c.length) fillRows($("credits"), creditFields, d.c);
+
+  // Tell them what was restored — a silently pre-filled form is alarming.
+  const when = d._at ? new Date(d._at) : null;
+  const stamp = when
+    ? when.toLocaleDateString("en-GB").replace(/\//g, ".") + " " +
+      when.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })
+    : "";
+  $("draftMsg").textContent = "📝 Tamamlanmadyk hasabat dikeldildi" + (stamp ? " (" + stamp + ")" : "") + ".";
+  $("draftBar").style.display = "flex";
+  return true;
+}
+
+$("draftClear").onclick = () => {
+  clearDraft();
+  location.reload();
+};
+
+/* ---------- start ---------- */
+document.querySelectorAll("input").forEach(i => i.addEventListener("input", recalc));
+$("date").valueAsDate = new Date();
+
+if (!restoreDraft()) {
+  for (let i = 0; i < 3; i++) addRow($("expenses"), expenseFields);
+  addRow($("tiers"), tierFields);
+  addRow($("credits"), creditFields);
+}
+recalc();
+</script>
+</body>
+</html>
