@@ -319,22 +319,22 @@ function decideRoute(role, uid, tgUser) {
     return { ok: false, title: "Rol kesgitlenmedi",
              msg: "Bu sahypanyň kime degişlidigi belli däl." };
   }
-  // Every link the bot builds carries the id it was built for. If one is
-  // present, the opener must be POSITIVELY confirmed as that person.
-  if (uid) {
-    // Identity unreadable (opened outside Telegram, or Telegram withheld it):
-    // unverifiable must mean refused, never trusted. Rendering the requested
-    // panel here would be exactly the "wrong page" case.
-    if (!tgUser) {
-      return { ok: false, title: "Şahsyýetiňizi barlap bolmady",
-               msg: "Bu sahypany diňe Telegram arkaly, botdaky düwmeden açyp bolýar." };
-    }
-    // A link built for someone else — forwarded, or an old keyboard after a
-    // role change. Refuse rather than show another role's panel.
-    if (uid !== tgUser) {
-      return { ok: false, title: "Bu sahypa siziň üçin däl",
-               msg: "Bu salgy başga ulanyjy üçin döredilipdir." };
-    }
+  // Identity check, WHEN Telegram gives us one.
+  //
+  // Mini Apps opened from a reply-keyboard button run in "simple" mode: that is
+  // what makes sendData() work without a backend, and it means initData — and
+  // therefore the user id — is deliberately absent. The modes that DO carry an
+  // identity (menu button, inline button, direct link) cannot use sendData at
+  // all. So a missing id here is normal operation, not a red flag, and must not
+  // block: doing so locks every real user out.
+  //
+  // The routing guarantee rests on the button instead: a reply keyboard exists
+  // only inside one person's private chat, so the owner's chat only ever holds
+  // the owner's button. Every action is re-checked against the database role on
+  // the bot side regardless of what this page shows.
+  if (uid && tgUser && uid !== tgUser) {
+    return { ok: false, title: "Bu sahypa siziň üçin däl",
+             msg: "Bu salgy başga ulanyjy üçin döredilipdir." };
   }
   return { ok: true, role: role };
 }
