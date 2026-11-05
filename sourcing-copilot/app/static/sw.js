@@ -1,6 +1,6 @@
 /* Service worker: app shell offline, network-first for API (falls back to last cached response). */
-const CACHE = "copilot-v1";
-const SHELL = ["/", "/static/styles.css?v=1", "/static/app.js?v=1", "/static/icons/icon.svg", "/manifest.webmanifest"];
+const CACHE = "copilot-v2";
+const SHELL = ["/", "/static/styles.css?v=2", "/static/app.js?v=2", "/static/icons/icon.svg", "/manifest.webmanifest"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener("activate", e => {
   e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));

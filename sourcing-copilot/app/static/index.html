@@ -12,25 +12,25 @@
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" href="/static/icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
-  <link rel="stylesheet" href="/static/styles.css?v=1">
+  <link rel="stylesheet" href="/static/styles.css?v=2">
 </head>
 <body>
   <header class="topbar"><div class="wrap">
-    <button class="back" id="back" hidden aria-label="Back">‹</button>
+    <button class="back" id="back" hidden aria-label="Back"><span data-ic="back"></span></button>
     <div class="title" id="title">Sourcing Copilot</div>
     <div class="seg" id="currency" role="group" aria-label="Currency">
       <button data-c="TMT">TMT</button><button data-c="CNY">CNY</button><button data-c="USD">USD</button>
     </div>
-    <button class="iconbtn" id="theme" aria-label="Toggle dark mode">🌓</button>
+    <button class="iconbtn" id="theme" aria-label="Toggle dark mode"><span data-ic="theme"></span></button>
   </div></header>
   <main class="wrap" id="view"><div class="skel"></div><div class="skel"></div></main>
   <nav class="nav"><div class="wrap">
-    <a href="#/" data-tab="home"><span class="ic">🏠</span>Home</a>
-    <a href="#/trends" data-tab="trends"><span class="ic">📈</span>Trends</a>
-    <a href="#/order" data-tab="order"><span class="ic">🛒</span>Order<span class="badge" id="basket-badge" hidden></span></a>
-    <a href="#/sales" data-tab="sales"><span class="ic">💰</span>Sales</a>
-    <a href="#/more" data-tab="more"><span class="ic">☰</span>More</a>
+    <a href="#/" data-tab="home"><span data-ic="home"></span>Home</a>
+    <a href="#/trends" data-tab="trends"><span data-ic="trend"></span>Trends</a>
+    <a href="#/order" data-tab="order"><span data-ic="cart"></span>Order<span class="badge" id="basket-badge" hidden></span></a>
+    <a href="#/sales" data-tab="sales"><span data-ic="wallet"></span>Sales</a>
+    <a href="#/more" data-tab="more"><span data-ic="menu"></span>More</a>
   </div></nav>
-  <script src="/static/app.js?v=1"></script>
+  <script src="/static/app.js?v=2"></script>
 </body>
 </html>

@@ -15,6 +15,7 @@ def clean_env(monkeypatch, tmp_path):
         monkeypatch.delenv(k, raising=False)
     monkeypatch.setenv("SCHEDULER_ENABLED", "false")
     monkeypatch.setenv("SEED_MOCK_DATA", "false")
+    monkeypatch.setenv("IMAGE_FETCH_ENABLED", "false")
     monkeypatch.setenv("DATA_DIR", str(tmp_path))
     yield
 

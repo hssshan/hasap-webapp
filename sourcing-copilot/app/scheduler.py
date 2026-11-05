@@ -42,6 +42,20 @@ def recompute_and_alert(db=None) -> list[dict]:
             db.close()
 
 
+def refresh_images() -> None:
+    from .config import env_bool
+    if not env_bool("IMAGE_FETCH_ENABLED", True):
+        return
+    from . import images
+    db = SessionLocal()
+    try:
+        res = images.refresh_product_images(db)
+        n = images.cache_signal_thumbnails(db)
+        mark_job(db, "images", "ok", f"{res.get('updated', 0)} product photos, {n} video thumbnails")
+    finally:
+        db.close()
+
+
 def weekly_digest() -> int:
     db = SessionLocal()
     try:
@@ -73,6 +87,7 @@ def start() -> None:
     s.add_job(run_adapter, "interval", args=["telegram_channels"], hours=6, id="telegram_channels")
     s.add_job(run_adapter, "cron", args=["fx"], hour=6, minute=5, id="fx")
     s.add_job(recompute_and_alert, "interval", hours=3, id="recompute")
+    s.add_job(refresh_images, "interval", hours=2, id="images")
     s.add_job(weekly_digest, "cron", day_of_week=days[int(tg.get("digest_weekday", 0)) % 7],
               hour=int(tg.get("digest_hour_utc", 8)), minute=3, id="digest")
     s.start()

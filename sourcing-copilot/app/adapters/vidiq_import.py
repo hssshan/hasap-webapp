@@ -51,6 +51,8 @@ def normalise_item(it: dict) -> dict:
         "classification": it.get("classification"),
         "category": it.get("category"),
         "counterfeit": it.get("counterfeit"),
+        "thumbnail_url": it.get("thumbnail_url") or it.get("thumbnailUrl") or it.get("thumbnail") or it.get("cover")
+                         or it.get("image"),
     }
 
 

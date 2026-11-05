@@ -194,7 +194,7 @@ def find_or_create_product(db: Session, cls: product_filter.Classification, is_m
                 p.counterfeit_risk, p.counterfeit_reason = True, cls.counterfeit_reason
             return p
     kg, _ = pricing.estimate_weight(name, cls.category or "")
-    p = Product(name=name, category=cls.category or "other", emoji=cls.emoji or "📦", est_weight_kg=kg,
+    p = Product(name=name, category=cls.category or "other", emoji=cls.emoji or "", est_weight_kg=kg,
                 counterfeit_risk=cls.counterfeit, counterfeit_reason=cls.counterfeit_reason,
                 keywords=sorted(product_filter.name_tokens(name)), is_mock=is_mock)
     terms = ai.FALLBACK_TERMS.get(name)
@@ -240,7 +240,7 @@ def ingest_signals(db: Session, source: str, items: list[dict], *, is_mock: bool
             cls = product_filter.Classification(
                 "product", canon[0] if canon else it["product_name"].strip().lower(),
                 canon[1] if canon else it.get("category") or cls.category or "other",
-                canon[2] if canon else cls.emoji or "📦", "pre-classified by importer",
+                canon[2] if canon else cls.emoji or "", "pre-classified by importer",
                 cls.counterfeit or bool(it.get("counterfeit")), cls.counterfeit_reason, 0.8)
         existing = db.scalar(select(TrendSignal).where(TrendSignal.source == source, TrendSignal.external_id == ext))
         sig = existing or TrendSignal(source=source, external_id=ext, is_mock=is_mock)
@@ -308,10 +308,10 @@ def recompute_trends(db: Session, now: datetime | None = None) -> list[dict]:
             key = None
             if res["score"] >= threshold and old_score < threshold:
                 key = f"crossed:{int(threshold)}"
-                msg = f"📈 {p.name} crossed Trend Score {threshold:.0f} (now {res['score']})."
+                msg = f"{p.name} crossed Trend Score {threshold:.0f} (now {res['score']})."
             elif res["state"] == "fading" and p.last_alert_key != "fading":
                 key = "fading"
-                msg = f"📉 {p.name} is fading ({res['state_reason']}). Don't reorder big."
+                msg = f"{p.name} is fading ({res['state_reason']}). Don't reorder big."
             if key and key != p.last_alert_key:
                 p.last_alert_key = key
                 alerts.append({"product_id": p.id, "name": p.name, "message": msg, "kind": key})
@@ -335,7 +335,8 @@ def product_card(db: Session, p: Product) -> dict:
     tb = p.trend_breakdown or {}
     return {
         "product_id": p.id, "name": p.name, "emoji": p.emoji, "category": p.category,
-        "image_url": best["offer"]["image_url"] if best and best["offer"].get("image_url") else p.image_url,
+        "image_url": product_image(p, best),
+        "image_credit": p.image_credit,
         "trend_score": p.trend_score, "trend_state": p.trend_state, "trend_colour": scoring.colour(p.trend_score),
         "signals": tb.get("independent_signals", 0), "is_trend": tb.get("is_trend", False), "trend_breakdown": tb,
         "counterfeit_risk": p.counterfeit_risk, "counterfeit_reason": p.counterfeit_reason,
@@ -354,6 +355,15 @@ def product_card(db: Session, p: Product) -> dict:
         "stock": stock_for(db, p.id),
         "own_sales_30d": sales_between(db, p.id, utcnow() - timedelta(days=30), utcnow() + timedelta(days=1)),
     }
+
+
+def product_image(p: Product, best: dict | None = None) -> str | None:
+    """Photo you set > best offer's image link > automatic (trending-video thumbnail / Openverse)."""
+    if p.image_url and p.image_source == "manual":
+        return p.image_url
+    if best and best["offer"].get("image_url"):
+        return best["offer"]["image_url"]
+    return p.image_url
 
 
 def recommendations(db: Session, limit: int = 10, explain: bool = True) -> list[dict]:
@@ -429,6 +439,7 @@ def order_summary(db: Session, order: Order) -> dict:
         line = {
             "item_id": it.id, "offer_id": o.id, "product_id": it.product_id, "product": it.product.name,
             "emoji": it.product.emoji, "title": o.title_en or o.title, "url": o.url, "image_url": o.image_url,
+            "product_image": product_image(it.product),
             "variant": it.variant, "qty": it.qty, "unit_cny": round(unit_cny, 2), "weight_kg": pr.weight_kg,
             "weight_is_estimate": pr.weight_is_estimate, "unit_landing_tmt": round(unit_landing, 2),
             "unit_sell_tmt": pr.sell_tmt, "seller": o.seller.name if o.seller else None,
@@ -459,7 +470,7 @@ def order_summary(db: Session, order: Order) -> dict:
 
 def export_text(summary: dict, lang: str = "en") -> str:
     """Clean order list for WhatsApp / Telegram."""
-    head = {"en": "🛒 Order", "ru": "🛒 Заказ", "tk": "🛒 Sargyt"}.get(lang, "🛒 Order")
+    head = {"en": "Order", "ru": "Заказ", "tk": "Sargyt"}.get(lang, "Order")
     qty_w = {"en": "qty", "ru": "кол-во", "tk": "sany"}.get(lang, "qty")
     lines = [f"{head} #{summary['order']['id']} — {datetime.now(timezone.utc).replace(tzinfo=None):%d.%m.%Y}", ""]
     for i, l in enumerate(summary["lines"], 1):
@@ -468,9 +479,9 @@ def export_text(summary: dict, lang: str = "en") -> str:
             lines.append(f"   {l['title'][:80]}")
         lines.append(f"   ¥{l['unit_cny']:.2f} × {l['qty']} = ¥{l['line_cny']:.2f}")
         if l.get("url"):
-            lines.append(f"   🔗 {l['url']}")
+            lines.append(f"   {l['url']}")
         if l.get("image_url") and str(l["image_url"]).startswith("http"):
-            lines.append(f"   📷 {l['image_url']}")
+            lines.append(f"   {l['image_url']}")
     t = summary["totals"]
     lines += ["", f"Σ ¥{t['goods_cny']:.2f} ≈ {t['goods_tmt']:.0f} TMT · {t['units']} pcs · ~{t['weight_kg']:.1f} kg"
               f" · cargo ≈ {t['cargo_tmt']:.0f} TMT",

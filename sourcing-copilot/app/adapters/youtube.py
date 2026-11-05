@@ -64,7 +64,8 @@ class YouTubeAdapter(Adapter):
                     found[vid] = {"external_id": vid, "url": f"https://www.youtube.com/shorts/{vid}", "platform": "youtube",
                                   "title": sn.get("title", ""), "description": sn.get("description", ""), "language": lang,
                                   "creator": sn.get("channelTitle"), "published_at": sn.get("publishedAt"),
-                                  "raw": {"query": q, "channel_id": sn.get("channelId")}}
+                                  "raw": {"query": q, "channel_id": sn.get("channelId"),
+                                          "thumbnail_url": ((sn.get("thumbnails") or {}).get("high") or {}).get("url")}}
         ids = list(found)
         for i in range(0, len(ids), 50):
             r = client.get(f"{API}/videos", params={"key": key, "part": "statistics", "id": ",".join(ids[i:i + 50])})

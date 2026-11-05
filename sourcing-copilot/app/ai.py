@@ -194,7 +194,7 @@ def _merge_ai(rule: product_filter.Classification, item: dict) -> product_filter
         label=label,
         product_name=(canon[0] if canon else name) if label == "product" else None,
         category=item.get("category") or (canon[1] if canon else rule.category),
-        emoji=canon[2] if canon else (rule.emoji or "📦"),
+        emoji=canon[2] if canon else (rule.emoji or ""),
         reason="AI: " + str(item.get("reason", ""))[:120],
         counterfeit=bool(item.get("counterfeit")) or rule.counterfeit,
         counterfeit_reason=rule.counterfeit_reason or ("AI flagged as branded/licensed: customs may seize counterfeits."
@@ -331,7 +331,7 @@ def template_explanation(c: dict) -> str:
     if c.get("own_sales_30d"):
         parts.append(f"you sold {c['own_sales_30d']} in 30 days")
     if c.get("counterfeit_risk"):
-        parts.append("⚠ branded: customs risk")
+        parts.append("branded: customs risk")
     lc = c.get("local_check") or {}
     if lc.get("status") in ("above_market", "above_median"):
         parts.append("priced above local market")
@@ -351,7 +351,7 @@ def captions(db: Session, product_name: str, sell_tmt: float, features: list[str
         return fallback
     system = ("You write short, warm social-media sales posts for a small shop in Ashgabat, Turkmenistan. "
               "Write natural Turkmen (Latin alphabet) and Russian. Include price in TMT, a call to DM/order, 3-5 hashtags. "
-              "No brand names. Reply ONLY JSON {\"tk\": {\"title\": \"\", \"caption\": \"\"}, \"ru\": {\"title\": \"\", \"caption\": \"\"}}")
+              "No brand names. No emojis. Reply ONLY JSON {\"tk\": {\"title\": \"\", \"caption\": \"\"}, \"ru\": {\"title\": \"\", \"caption\": \"\"}}")
     reply = _call(db, model_small(), system, json.dumps(key, ensure_ascii=False), max_tokens=900)
     if reply:
         try:
@@ -371,11 +371,11 @@ def template_captions(product_name: str, sell_tmt: float) -> dict:
     price = f"{sell_tmt:.0f} TMT"
     return {
         "tk": {"title": tk_name.capitalize(),
-               "caption": f"✨ Täze geldi: {tk_name}! Bahasy: {price}. Sargyt üçin DM ýazyň ýa-da jaň ediň 📩 "
-                          f"Aşgabat boýunça eltip berýäris 🚚\n#Aşgabat #sowgat #oýnawaç #täzelik", "template": True},
+               "caption": f"Täze geldi: {tk_name}! Bahasy: {price}. Sargyt üçin DM ýazyň ýa-da jaň ediň "
+                          f"Aşgabat boýunça eltip berýäris \n#Aşgabat #sowgat #oýnawaç #täzelik", "template": True},
         "ru": {"title": ru_name.capitalize(),
-               "caption": f"✨ Новинка: {ru_name}! Цена: {price}. Для заказа пишите в директ 📩 "
-                          f"Доставка по Ашхабаду 🚚\n#Ашхабад #подарки #игрушки #новинка", "template": True},
+               "caption": f"Новинка: {ru_name}! Цена: {price}. Для заказа пишите в директ "
+                          f"Доставка по Ашхабаду \n#Ашхабад #подарки #игрушки #новинка", "template": True},
     }
 
 

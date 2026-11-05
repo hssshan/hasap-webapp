@@ -24,48 +24,48 @@ def vidiq_mock_items(now: datetime) -> list[dict]:
     return [
         # --- the real vidIQ run (TR, Oct 2026)
         {"id": "tt-7431001", "platform": "tiktok", "url": "https://www.tiktok.com/@oyuncakdunyasi/video/7431001",
-         "title": "Kilo ile peluş oyuncak aldım! Tartıda tartıp satıyorlar 😱 nereden aldın diyenler link bio'da",
+         "title": "Kilo ile peluş oyuncak aldım! Tartıda tartıp satıyorlar nereden aldın diyenler link bio'da",
          "language": "tr", "creator": "oyuncakdunyasi", "views": 2_200_000, "outlier_score": 24, "published_at": d(9)},
         {"id": "ig-C9hamster1", "platform": "instagram", "url": "https://www.instagram.com/reel/C9hamster1/",
-         "title": "Gen Z'nin yeni favorisi: örgü hamster peluş 🐹 hediye için bunu almalısın",
+         "title": "Gen Z'nin yeni favorisi: örgü hamster peluş hediye için bunu almalısın",
          "language": "tr", "creator": "orgu.atolyesi", "views": 1_100_000, "outlier_score": 31, "published_at": d(6)},
         {"id": "tt-7431077", "platform": "tiktok", "url": "https://www.tiktok.com/@teknoucuz/video/7431077",
-         "title": "Ucuz mini dijital kamera Çin'den sipariş ettim, kutu açılımı 📷 retro fotoğraflar",
+         "title": "Ucuz mini dijital kamera Çin'den sipariş ettim, kutu açılımı retro fotoğraflar",
          "language": "tr", "creator": "teknoucuz", "views": 1_700_000, "outlier_score": 18, "published_at": d(4)},
         {"id": "tt-7430555", "platform": "tiktok", "url": "https://www.tiktok.com/@pazarturu/video/7430555",
-         "title": "Pazarda squishy oyuncak buldum 🫧 tanesi 20 TL, stres oyuncağı alışverişi",
+         "title": "Pazarda squishy oyuncak buldum tanesi 20 TL, stres oyuncağı alışverişi",
          "language": "tr", "creator": "pazarturu", "views": 1_300_000, "outlier_score": 12, "published_at": d(24)},
         {"id": "ig-C9keych01", "platform": "instagram", "url": "https://www.instagram.com/reel/C9keych01/",
-         "title": "Sevgiliye hediye: bebek anahtarlık 🔑 çantama taktım, link bio'da",
+         "title": "Sevgiliye hediye: bebek anahtarlık çantama taktım, link bio'da",
          "language": "tr", "creator": "hediyelik.tr", "views": 790_000, "outlier_score": 9, "published_at": d(5)},
         # --- noise from the same run: must be filtered out
         {"id": "tt-noise-1", "platform": "tiktok", "url": "https://www.tiktok.com/@ayse/video/1",
-         "title": "Lip sync to Tarkan şarkı 🎤 #akım #lipsync", "language": "tr", "creator": "ayse", "views": 3_400_000,
+         "title": "Lip sync to Tarkan şarkı #akım #lipsync", "language": "tr", "creator": "ayse", "views": 3_400_000,
          "outlier_score": 40, "published_at": d(3)},
         {"id": "tt-noise-2", "platform": "tiktok", "url": "https://www.tiktok.com/@komikvideo/video/2",
-         "title": "İskender girl 😂 yemek şakası #komik", "language": "tr", "creator": "komikvideo", "views": 2_900_000,
+         "title": "İskender girl yemek şakası #komik", "language": "tr", "creator": "komikvideo", "views": 2_900_000,
          "outlier_score": 22, "published_at": d(2)},
         {"id": "ig-noise-3", "platform": "instagram", "url": "https://www.instagram.com/reel/noise3/",
-         "title": "Dans ederken yeni çantamı gösteriyorum 💃 #dans #trend", "language": "tr", "creator": "melis.dance",
+         "title": "Dans ederken yeni çantamı gösteriyorum #dans #trend", "language": "tr", "creator": "melis.dance",
          "views": 1_500_000, "outlier_score": 15, "published_at": d(1)},
         # --- extra independent signals (other creators / platforms / Russian run)
         {"id": "ig-C9kilo02", "platform": "instagram", "url": "https://www.instagram.com/reel/C9kilo02/",
-         "title": "Kiloyla peluş oyuncak satan mağaza 🧸 tartıya koy, öde, al!", "language": "tr",
+         "title": "Kiloyla peluş oyuncak satan mağaza tartıya koy, öde, al!", "language": "tr",
          "creator": "istanbul.kesif", "views": 480_000, "outlier_score": 7, "published_at": d(3)},
         {"id": "tt-7431200", "platform": "tiktok", "url": "https://www.tiktok.com/@bebekoyun/video/7431200",
-         "title": "Örgü hamster peluş koleksiyonum 🐹 amigurumi hediye fikirleri", "language": "tr",
+         "title": "Örgü hamster peluş koleksiyonum amigurumi hediye fikirleri", "language": "tr",
          "creator": "bebekoyun", "views": 260_000, "outlier_score": 6, "published_at": d(2)},
         {"id": "tt-ru-cam", "platform": "tiktok", "url": "https://www.tiktok.com/@gadget.ru/video/88001",
-         "title": "Заказала мини камеру из Китая, распаковка 📷 ретро фото", "language": "ru",
+         "title": "Заказала мини камеру из Китая, распаковка ретро фото", "language": "ru",
          "creator": "gadget.ru", "views": 650_000, "outlier_score": 11, "published_at": d(7)},
         {"id": "tt-squish-old", "platform": "tiktok", "url": "https://www.tiktok.com/@squishmania/video/7400001",
-         "title": "Squishy haul 🫧 50 tane squishy oyuncak aldım", "language": "tr", "creator": "squishmania",
+         "title": "Squishy haul 50 tane squishy oyuncak aldım", "language": "tr", "creator": "squishmania",
          "views": 900_000, "outlier_score": 8, "published_at": d(26)},
         {"id": "tt-labubu", "platform": "tiktok", "url": "https://www.tiktok.com/@trendbul/video/7431300",
-         "title": "Labubu peluş kutu açılımı, çakması mı orijinal mi? 😱", "language": "tr", "creator": "trendbul",
+         "title": "Labubu peluş kutu açılımı, çakması mı orijinal mi? ", "language": "tr", "creator": "trendbul",
          "views": 3_000_000, "outlier_score": 20, "published_at": d(5)},
         {"id": "ig-labubu2", "platform": "instagram", "url": "https://www.instagram.com/reel/labubu2/",
-         "title": "Labubu anahtarlık alışverişi 🛍️ nereden aldın diyenler", "language": "tr", "creator": "kesfet.alisveris",
+         "title": "Labubu anahtarlık alışverişi nereden aldın diyenler", "language": "tr", "creator": "kesfet.alisveris",
          "views": 1_200_000, "outlier_score": 10, "published_at": d(4)},
     ]
 
@@ -77,7 +77,7 @@ def seed(db: Session, now: datetime | None = None) -> dict:
     stats = import_payload(db, {"source": "vidiq", "items": vidiq_mock_items(now)}, is_mock=True)
     services.ingest_signals(db, "youtube", [
         {"external_id": "yt-kilo-ru", "url": "https://www.youtube.com/shorts/kiloRu01", "platform": "youtube",
-         "title": "Мягкие игрушки на вес! Купил килограмм игрушек 🧸", "language": "ru", "creator": "ИгрушкиТВ",
+         "title": "Мягкие игрушки на вес! Купил килограмм игрушек ", "language": "ru", "creator": "ИгрушкиТВ",
          "views": 310_000, "published_at": (now - timedelta(days=5)).isoformat()},
     ], is_mock=True)
     services.ingest_signals(db, "paste", [
@@ -215,7 +215,7 @@ def seed(db: Session, now: datetime | None = None) -> dict:
 
     # local market (Turkmen Telegram channels)
     local_posts = [
-        (hamster, 150, "ashgabat_oyunjak", "Örme hamster oýnawaç 🐹 bahasy 150 TMT, eltip bermek bar", 4),
+        (hamster, 150, "ashgabat_oyunjak", "Örme hamster oýnawaç bahasy 150 TMT, eltip bermek bar", 4),
         (hamster, 120, "tm_sowgatlar", "Hamster ýumşak oýnawaç täze geldi! Bahasy: 120 manat", 6),
         (hamster, 160, "aşgabat_market", "Вязаный хомяк игрушка, цена 160 ман", 10),
         (camera, 380, "tm_gadgets", "Mini sanly kamera, retro surat. Bahasy 380 TMT", 3),
@@ -257,6 +257,7 @@ def seed(db: Session, now: datetime | None = None) -> dict:
     db.commit()
     for p in db.scalars(select(Product)):
         services.ensure_search_terms(db, p)
+    add_demo_videos(db, now)
     services.recompute_trends(db, now)
     return {"seeded": True, "vidiq": {k: stats[k] for k in ("received", "product", "noise")}}
 
@@ -268,3 +269,47 @@ def clear_mock(db: Session) -> dict:
         counts[model.__tablename__] = res.rowcount
     db.commit()
     return counts
+
+
+# Real Turkish YouTube videos about the demo products (found Nov 2026). Their thumbnails become the
+# demo product photos; the links open the real videos.
+DEMO_VIDEOS = {
+    "crocheted hamster plush": [("y-p5UAQnRkI", "No Sew: How To Crochet Hamster, Step By Step", 281_925),
+                                ("xMgsZvtWGzE", "Hamster Anahtarlık Yapımı / Üzgün Hamster", 9_586)],
+    "plush toys sold by the kilo": [("4FSA1YfOa7g", "Ankara'da Kilogramla Oyuncak Satan Yer Keşfettik", 31_350),
+                                    ("nCO-e7jkqQI", "Canlı yayında kilo ile peluş oyuncak şok fiyat #shorts", 3_795)],
+    "mini digital camera": [("zdkb5imO1KM", "MİNİ KAMERA ALDIM ŞOK OLDUM", 66_738),
+                            ("CpfaMDsG63w", "Mini Kamera Unboxing", 10_789)],
+    "squishy toys": [("iRuF4FoEtOY", "Yurt dışında bulduğum bütün squishyleri satın aldım!", 2_109_841)],
+    "doll style keychains": [("tXU7e8LiQIc", "Mini bebek anahtarlık yapımı", 281_472)],
+    "labubu style plush": [("ydywm5RTRxg", "Labubu Gizemli Kutunu Seç! Hediyenizi Seçin", 37_916)],
+}
+
+
+def add_demo_videos(db: Session, now: datetime | None = None) -> int:
+    """Attach the real demo videos + photos to demo products (idempotent; also upgrades older demo databases)."""
+    now = now or utcnow()
+    added = 0
+    for p in db.scalars(select(Product).where(Product.is_mock.is_(True))):
+        vids = DEMO_VIDEOS.get(p.name)
+        if not vids:
+            continue
+        for i, (vid, title, views) in enumerate(vids):
+            if db.scalar(select(TrendSignal.id).where(TrendSignal.source == "youtube", TrendSignal.external_id == vid)):
+                continue
+            db.add(TrendSignal(source="youtube", platform="youtube", external_id=vid,
+                               url=f"https://www.youtube.com/watch?v={vid}", title=title, language="tr",
+                               creator=f"yt:{vid}", views=views, published_at=now - timedelta(days=6 + i * 3),
+                               collected_at=now - timedelta(days=1), classification="product", product_id=p.id,
+                               extracted_product=p.name, class_reason="demo: real YouTube video",
+                               raw={"thumbnail_url": f"https://i.ytimg.com/vi/{vid}/hqdefault.jpg"}, is_mock=True))
+            added += 1
+        if not p.image_url:
+            vid = vids[0][0]
+            p.image_url = f"https://i.ytimg.com/vi/{vid}/hqdefault.jpg"
+            p.image_source, p.image_credit = "auto", f"From YouTube: {vids[0][1]} (https://www.youtube.com/watch?v={vid})"
+    db.commit()
+    if added:
+        from . import services
+        services.recompute_trends(db, now)
+    return added

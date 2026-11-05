@@ -80,6 +80,14 @@ python -m pytest -q          # 105 tests: pricing, scoring, filter, sales parser
 
 Currency toggle (TMT / CNY / USD) and dark/light mode are in the top bar.
 
+**Product photos** are real images, found automatically and saved in `data/images` so they never expire:
+1. A photo you set (product page → **Change photo**: upload, paste an image link, or **Use as photo** under any trending video).
+2. The best offer's image link, if you entered one.
+3. The thumbnail of the most-viewed trending video about the product (YouTube, TikTok via its free oEmbed,
+   vidIQ's thumbnail field, Telegram post photos).
+4. A Creative Commons photo from Openverse (free, no key).
+5. Otherwise a plain initials tile. Photos refresh every 2 hours and right after each import.
+
 ---
 
 ## 3. How the numbers work

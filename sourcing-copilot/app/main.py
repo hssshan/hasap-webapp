@@ -49,8 +49,17 @@ async def lifespan(app: FastAPI):
                 log.info("Seeded demo data")
         finally:
             db.close()
+        db = SessionLocal()
+        try:
+            from .seed import add_demo_videos
+            add_demo_videos(db)
+        finally:
+            db.close()
     scheduler.start()
     RUNNER.start()
+    if env_bool("IMAGE_FETCH_ENABLED", True):
+        from .images import refresh_in_background
+        refresh_in_background()
     yield
     RUNNER.stop()
     scheduler.shutdown()
@@ -178,7 +187,7 @@ def create_product(payload: dict = Body(...), db: Session = Depends(get_db)):
     canon = canonical_product(name)
     brand = detect_brand(name)
     cls = Classification("product", canon[0] if canon else name, payload.get("category") or (canon[1] if canon else "other"),
-                         canon[2] if canon else "📦", "manual", bool(brand),
+                         canon[2] if canon else "", "manual", bool(brand),
                          f"Mentions '{brand}': branded/licensed goods can be seized by customs." if brand else None, 1)
     p = services.find_or_create_product(db, cls)
     db.commit()
@@ -281,7 +290,7 @@ def reclassify_signal(sid: int, payload: dict = Body(...), db: Session = Depends
             raise HTTPException(400, "product_name required")
         canon = canonical_product(name)
         cls = Classification("product", canon[0] if canon else name, canon[1] if canon else "other",
-                             canon[2] if canon else "📦", "manual", False, None, 1)
+                             canon[2] if canon else "", "manual", False, None, 1)
         p = services.find_or_create_product(db, cls)
         s.classification, s.product_id, s.extracted_product, s.class_reason = "product", p.id, p.name, "manual"
     db.commit()
@@ -352,8 +361,6 @@ def _apply_offer(db: Session, o: Offer, payload: dict) -> None:
                 setattr(seller, dst, val)
         db.flush()
         o.seller_id = seller.id
-    if not o.image_url and o.screenshots:
-        o.image_url = o.screenshots[0]
 
 
 @app.post("/api/offers")
@@ -651,7 +658,14 @@ def import_trends(request: Request, payload: Any = Body(...), db: Session = Depe
     res = import_payload(db, payload)
     if res.get("alerts") and RUNNER.active:
         bot_handlers.send_alerts(db, RUNNER.api, res["alerts"])
+    _refresh_images()
     return res
+
+
+def _refresh_images() -> None:
+    if env_bool("IMAGE_FETCH_ENABLED", True):
+        from .images import refresh_in_background
+        refresh_in_background()
 
 
 @app.post("/api/import/trends/manual")
@@ -663,7 +677,9 @@ def import_trends_manual(payload: Any = Body(...), db: Session = Depends(get_db)
             payload = json.loads(payload["json"])
         except json.JSONDecodeError as e:
             raise HTTPException(400, f"Not valid JSON: {e}")
-    return import_payload(db, payload)
+    res = import_payload(db, payload)
+    _refresh_images()
+    return res
 
 
 @app.post("/api/import/paste")
@@ -671,7 +687,9 @@ def import_paste_box(payload: dict = Body(...), db: Session = Depends(get_db)):
     text = payload.get("text", "")
     if not text.strip():
         raise HTTPException(400, "nothing pasted")
-    return import_paste(db, text, language=payload.get("language", "tr"))
+    res = import_paste(db, text, language=payload.get("language", "tr"))
+    _refresh_images()
+    return res
 
 
 # ------------------------------------------------------------------ settings & setup
@@ -770,6 +788,7 @@ def run_adapter(name: str, payload: dict = Body(default={}), db: Session = Depen
         alerts = services.recompute_trends(db)
         if alerts and RUNNER.active:
             bot_handlers.send_alerts(db, RUNNER.api, alerts)
+        _refresh_images()
     return res
 
 
@@ -796,7 +815,7 @@ def approve_chat(chat_id: int, payload: dict = Body(default={}), db: Session = D
     db.commit()
     if RUNNER.active and role in ("owner", "person"):
         try:
-            RUNNER.api.send_message(chat_id, "✅ Approved. " + (bot_handlers.HELP if role == "owner" else bot_handlers.PERSON_HELP))
+            RUNNER.api.send_message(chat_id, "Approved. " + (bot_handlers.HELP if role == "owner" else bot_handlers.PERSON_HELP))
         except Exception:  # noqa: BLE001
             pass
     return row_dict(row)
@@ -850,19 +869,72 @@ def ai_status(db: Session = Depends(get_db)):
 
 
 # ------------------------------------------------------------------ images & static
-PALETTE = ["#f7c6d9", "#c9e4ff", "#d8f5c9", "#ffe3b3", "#e3d4ff", "#ffd6c9", "#c9f2ef"]
+PALETTE = [("#eef0f3", "#5b6472"), ("#f1ede7", "#6b5d4b"), ("#e9eff0", "#4f6366"), ("#efeaf1", "#625369")]
 
 
 @app.get("/api/placeholder/{pid}.svg")
 def placeholder(pid: int, db: Session = Depends(get_db)):
+    """Neutral monogram tile, shown only until a real photo is found."""
+    import html as _html
     p = db.get(Product, pid)
-    emoji = p.emoji if p else "📦"
-    bg = PALETTE[pid % len(PALETTE)]
+    words = [w for w in (p.name if p else "?").split() if w.isalpha()][:2]
+    initials = _html.escape("".join(w[0] for w in words).upper() or "?")
+    bg, fg = PALETTE[pid % len(PALETTE)]
     svg = (f'<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240">'
-           f'<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="{bg}"/>'
-           f'<stop offset="1" stop-color="#ffffff"/></linearGradient></defs><rect width="240" height="240" rx="28" fill="url(#g)"/>'
-           f'<text x="120" y="148" font-size="110" text-anchor="middle">{emoji}</text></svg>')
-    return Response(svg, media_type="image/svg+xml", headers={"Cache-Control": "max-age=86400"})
+           f'<rect width="240" height="240" fill="{bg}"/>'
+           f'<text x="120" y="136" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="64" font-weight="600" '
+           f'fill="{fg}" text-anchor="middle" letter-spacing="2">{initials}</text></svg>')
+    return Response(svg, media_type="image/svg+xml", headers={"Cache-Control": "no-cache"})
+
+
+@app.get("/media/{name}")
+def media(name: str):
+    from .images import images_dir
+    path = images_dir() / Path(name).name
+    if not path.exists():
+        raise HTTPException(404)
+    return FileResponse(path, headers={"Cache-Control": "max-age=604800"})
+
+
+@app.post("/api/products/{pid}/image")
+async def set_product_image(pid: int, file: UploadFile | None = File(default=None), url: str = Form(""),
+                            signal_id: int | None = Form(default=None), reset: bool = Form(default=False),
+                            db: Session = Depends(get_db)):
+    """Set the product photo: upload a file, paste an image link, pick a trending video, or reset to automatic."""
+    from . import images
+    p = get_or_404(db, Product, pid)
+    if reset:
+        p.image_url, p.image_source, p.image_credit = None, None, None
+        db.commit()
+        if env_bool("IMAGE_FETCH_ENABLED", True):
+            images.refresh_product_images(db, limit=1)
+        return {"image_url": p.image_url, "image_credit": p.image_credit}
+    local, credit = None, None
+    if file is not None and file.filename:
+        data = await file.read()
+        if len(data) > 12 * 1024 * 1024:
+            raise HTTPException(413, "photo too large (max 12 MB)")
+        local, credit = images.save_upload(data), "Your photo"
+    elif signal_id:
+        sig = get_or_404(db, TrendSignal, signal_id)
+        remote = images.signal_image_url(sig)
+        local = images.cache_image(remote) if remote else None
+        credit = f"From {sig.platform}: {(sig.title or '')[:80]} ({sig.url or ''})"
+    elif url.strip():
+        local, credit = images.cache_image(url.strip()), f"From {url.strip()[:120]}"
+    if not local:
+        raise HTTPException(400, "Couldn't get an image from that. Try uploading the photo instead.")
+    p.image_url, p.image_source, p.image_credit = local, "manual", credit
+    db.commit()
+    return {"image_url": local, "image_credit": credit}
+
+
+@app.post("/api/images/refresh")
+def refresh_images(db: Session = Depends(get_db)):
+    from . import images
+    res = images.refresh_product_images(db)
+    res["thumbnails"] = images.cache_signal_thumbnails(db)
+    return res
 
 
 @app.get("/uploads/{name}")

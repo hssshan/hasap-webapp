@@ -42,7 +42,9 @@ class Product(Base):
     keywords: Mapped[list] = mapped_column(JSON, default=list)  # synonyms tr/ru/tk/en for matching
     search_terms: Mapped[dict] = mapped_column(JSON, default=dict)  # {"zh": [...], "tr": "...", "ru": "...", "tk": "..."}
     image_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    emoji: Mapped[str] = mapped_column(String(8), default="🧸")
+    image_source: Mapped[str | None] = mapped_column(String(20), nullable=True)  # manual | auto
+    image_credit: Mapped[str | None] = mapped_column(String(400), nullable=True)
+    emoji: Mapped[str] = mapped_column(String(8), default="")
     est_weight_kg: Mapped[float | None] = mapped_column(Float, nullable=True)
     counterfeit_risk: Mapped[bool] = mapped_column(Boolean, default=False)
     counterfeit_reason: Mapped[str | None] = mapped_column(String(300), nullable=True)
@@ -81,6 +83,7 @@ class TrendSignal(Base):
     classification: Mapped[str] = mapped_column(String(10), default="unknown")  # product | noise | unknown
     extracted_product: Mapped[str | None] = mapped_column(String(200), nullable=True)
     class_reason: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    thumbnail: Mapped[str | None] = mapped_column(String(300), nullable=True)  # local cached image, "" = none found
     raw: Mapped[dict] = mapped_column(JSON, default=dict)
     is_mock: Mapped[bool] = mapped_column(Boolean, default=False)
 
@@ -324,8 +327,25 @@ def init_engine(url: str | None = None):
             cur.execute("PRAGMA journal_mode=WAL")
             cur.close()
     Base.metadata.create_all(_engine)
+    _add_missing_columns(_engine)
     _SessionLocal = sessionmaker(bind=_engine, expire_on_commit=False, future=True)
     return _engine
+
+
+def _add_missing_columns(engine) -> None:
+    """Tiny auto-migration: add columns introduced in newer versions to an existing database."""
+    from sqlalchemy import inspect, text
+
+    insp = inspect(engine)
+    with engine.begin() as conn:
+        for table in Base.metadata.sorted_tables:
+            if not insp.has_table(table.name):
+                continue
+            have = {c["name"] for c in insp.get_columns(table.name)}
+            for col in table.columns:
+                if col.name not in have:
+                    ddl = col.type.compile(dialect=engine.dialect)
+                    conn.execute(text(f'ALTER TABLE {table.name} ADD COLUMN "{col.name}" {ddl}'))
 
 
 def get_engine():

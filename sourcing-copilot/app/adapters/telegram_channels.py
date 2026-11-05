@@ -50,6 +50,7 @@ def extract_prices(text: str) -> list[float]:
 _POST_RE = re.compile(r'<div class="tgme_widget_message_wrap.*?data-post="([^"]+)".*?(?=<div class="tgme_widget_message_wrap|\Z)', re.S)
 _TEXT_RE = re.compile(r'<div class="tgme_widget_message_text[^"]*"[^>]*>(.*?)</div>', re.S)
 _DATE_RE = re.compile(r'<time datetime="([^"]+)"')
+_PHOTO_RE = re.compile(r"tgme_widget_message_photo_wrap[^>]*background-image:url\('([^']+)'\)")
 _VIEWS_RE = re.compile(r'<span class="tgme_widget_message_views">([^<]+)</span>')
 
 
@@ -73,8 +74,10 @@ def parse_preview(page: str, channel: str) -> list[dict]:
         text = re.sub(r"<[^>]+>", "", text).strip()
         dm = _DATE_RE.search(block)
         vm = _VIEWS_RE.search(block)
+        pm = _PHOTO_RE.search(block)
         posts.append({"id": m.group(1), "url": f"https://t.me/{m.group(1)}", "text": text, "channel": channel,
-                      "date": dm.group(1) if dm else None, "views": _views(vm.group(1)) if vm else 0})
+                      "date": dm.group(1) if dm else None, "views": _views(vm.group(1)) if vm else 0,
+                      "photo": pm.group(1) if pm else None})
     return posts
 
 
@@ -146,7 +149,7 @@ class TelegramChannelsAdapter(Adapter):
                                    classification="product" if prod else "unknown",
                                    extracted_product=prod.name if prod else None,
                                    value=prices[0] if prices else None, language="tk",
-                                   raw={"prices": prices}))
+                                   raw={"prices": prices, "photo": post.get("photo")}))
                 if prod and prices:
                     db.add(LocalPrice(product_id=prod.id, price_tmt=min(prices), source="telegram",
                                       channel=post["channel"], url=post["url"], text=post["text"][:500], seen_at=when))

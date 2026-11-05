@@ -74,6 +74,7 @@ Step 6. Build this JSON (one item per video; keep real URLs, view counts and out
       "views": 1234567,
       "outlier_score": 12.5,
       "published_at": "<ISO date>",
+      "thumbnail_url": "<video cover/thumbnail image link from vidIQ, if given>",
       "classification": "product | noise",
       "product_name": "<clean English name, product items only>",
       "category": "plush | toys | electronics | accessories | stationery | beauty | home | other",

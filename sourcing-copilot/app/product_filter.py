@@ -41,21 +41,21 @@ NOISE_STRONG = [r"lip ?sync", r"dudak senk", r"dans ederken", r"dancing", r"iske
 
 # Canonical product dictionary: (regex, canonical English name, category, emoji)
 CANONICAL = [
-    (r"labubu", "labubu style plush", "plush", "🐰"),
+    (r"labubu", "labubu style plush", "plush", ""),
     (r"(kilo|kg|tart[ıi]|weigh|by the kilo|на вес|кило).{0,40}(pelu[şs]|oyuncak|plush|toy|игрушк)|(pelu[şs]|oyuncak|plush|toy|игрушк).{0,40}(kilo|kg|tart[ıi]|weigh|на вес)",
-     "plush toys sold by the kilo", "plush", "⚖️"),
+     "plush toys sold by the kilo", "plush", ""),
     (r"(örgü|orgu|crochet|amigurumi|вязан).{0,40}(hamster|хомяк)|(hamster|хомяк).{0,40}(örgü|orgu|crochet|amigurumi|вязан)",
-     "crocheted hamster plush", "plush", "🐹"),
+     "crocheted hamster plush", "plush", ""),
     (r"(mini|küçük|kucuk|cheap|ucuz|retro|мини).{0,30}(dijital |digital )?(kamera|camera|камер|fotoğraf makines)",
-     "mini digital camera", "electronics", "📷"),
-    (r"squish|sukuşi|skuşi|антистресс|stres (oyuncağ|topu)|сквиш", "squishy toys", "toys", "🫧"),
+     "mini digital camera", "electronics", ""),
+    (r"squish|sukuşi|skuşi|антистресс|stres (oyuncağ|topu)|сквиш", "squishy toys", "toys", ""),
     (r"(bebek|doll|кукл|labubu tarz|baby).{0,30}(anahtarl|keychain|брелок|charm)|(anahtarl|keychain|брелок).{0,30}(bebek|doll|кукл)",
-     "doll style keychains", "accessories", "🔑"),
-    (r"claw machine|pençe|vinç makin|кран.?машин|хватайк", "claw machine plush prizes", "plush", "🕹️"),
-    (r"blind box|sürpriz kutu|сюрприз бокс|kör kutu", "blind box figures", "toys", "🎁"),
-    (r"hamster", "hamster plush", "plush", "🐹"),
-    (r"capybara|kapibara|капибар", "capybara plush", "plush", "🦫"),
-    (r"pelu[şs]|plush|мягк(ая|ие) игрушк|ýumşak oýnawaç", "plush toys", "plush", "🧸"),
+     "doll style keychains", "accessories", ""),
+    (r"claw machine|pençe|vinç makin|кран.?машин|хватайк", "claw machine plush prizes", "plush", ""),
+    (r"blind box|sürpriz kutu|сюрприз бокс|kör kutu", "blind box figures", "toys", ""),
+    (r"hamster", "hamster plush", "plush", ""),
+    (r"capybara|kapibara|капибар", "capybara plush", "plush", ""),
+    (r"pelu[şs]|plush|мягк(ая|ие) игрушк|ýumşak oýnawaç", "plush toys", "plush", ""),
 ]
 
 # Branded / licensed: customs in Turkmenistan can seize counterfeits

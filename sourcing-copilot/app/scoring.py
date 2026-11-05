@@ -117,7 +117,7 @@ def offer_value_scores(offers: list[Any], landing_by_offer: dict[int, float], se
         notes = []
         if o.rating is not None:
             q += max(0, min(14, (o.rating - 4.0) * 14))
-            notes.append(f"{o.rating:.1f}★")
+            notes.append(f"{o.rating:.1f}/5 rating")
         else:
             q += 5
             notes.append("no rating")

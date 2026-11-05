@@ -21,7 +21,7 @@ from ..settings_store import get_setting
 
 log = logging.getLogger(__name__)
 
-HELP = """🤖 Sourcing Copilot
+HELP = """Sourcing Copilot
 /top — this week's top picks
 /stock — stock on hand
 /profit — profit last 30 days
@@ -32,12 +32,12 @@ HELP = """🤖 Sourcing Copilot
 Log a sale: sold 2 hamster 250
 (2 units at 250 TMT each; add "total" for a total price)"""
 
-PERSON_HELP = """🤖 Sourcing Copilot
+PERSON_HELP = """Sourcing Copilot
 /shipments — shipments + status buttons
 /stock — stock on hand
 Log a sale: sold 2 hamster 250"""
 
-STATUS_BUTTONS = [("📦 Arrived", "arrived"), ("🚚 Delivered", "delivered"), ("💵 Cash received", "cash_received")]
+STATUS_BUTTONS = [("Arrived", "arrived"), ("Delivered", "delivered"), ("Cash received", "cash_received")]
 STATUS_LABEL = {"arrived": "arrived in Ashgabat", "delivered": "delivered", "cash_received": "cash received",
                 "in_transit": "in transit", "china_warehouse": "at China warehouse", "sold_out": "sold out"}
 
@@ -120,7 +120,7 @@ class BotHandler:
             db.add(TelegramChat(chat_id=chat_id, name=name, username=chat.get("username"), role="pending"))
             db.commit()
             if text.startswith("/start"):
-                self.api.send_message(chat_id, f"👋 Hi! Your chat ID is {chat_id}. Waiting for approval in the app "
+                self.api.send_message(chat_id, f"Hi. Your chat ID is {chat_id}. Waiting for approval in the app "
                                                f"(Settings → Telegram bot).")
         # pending/blocked chats are otherwise ignored completely
 
@@ -129,7 +129,7 @@ class BotHandler:
         cards = services.recommendations(db, limit=limit)
         if not cards:
             return "No recommendations yet: import trends first."
-        lines = ["🔥 What to order this week"]
+        lines = ["What to order this week"]
         for i, c in enumerate(cards, 1):
             st = {"rising": "↗", "peaking": "→", "fading": "↘"}.get(c["trend_state"], "·")
             line = f"\n{i}. {c['emoji']} {c['name']} — trend {c['trend_score']:.0f} {st}"
@@ -138,7 +138,7 @@ class BotHandler:
             else:
                 line += "\n   no offers yet — find one on Taobao/1688"
             if c.get("counterfeit_risk"):
-                line += "\n   ⚠ branded: customs risk"
+                line += "\n   branded: customs risk"
             line += f"\n   {c.get('explanation', '')}"
             lines.append(line)
         return "\n".join(lines)
@@ -147,18 +147,18 @@ class BotHandler:
         rep = services.weekly_report(db)
         t = rep["totals"]
         parts = [self.top_text(db, limit=5), "",
-                 f"📊 Last 7 days: {t['units']} sold, {t['revenue']:.0f} TMT revenue, {t['profit']:.0f} TMT profit ({t['margin_pct']:.0f}%)"]
+                 f"Last 7 days: {t['units']} sold, {t['revenue']:.0f} TMT revenue, {t['profit']:.0f} TMT profit ({t['margin_pct']:.0f}%)"]
         if rep["reorder"]:
-            parts.append("🔁 Reorder: " + ", ".join(f"{r['name']} ({r['suggested_qty']})" for r in rep["reorder"][:5]))
+            parts.append("Reorder: " + ", ".join(f"{r['name']} ({r['suggested_qty']})" for r in rep["reorder"][:5]))
         if rep["stop"]:
-            parts.append("⛔ Stop buying: " + ", ".join(r["name"] for r in rep["stop"][:5]))
+            parts.append("Stop buying: " + ", ".join(r["name"] for r in rep["stop"][:5]))
         return "\n".join(parts)
 
     def stock_text(self, db: Session) -> str:
         rows = services.stock_overview(db)
         if not rows:
             return "No stock recorded yet."
-        lines = ["📦 Stock"]
+        lines = ["Stock"]
         for r in rows:
             extra = f" (+{r['incoming']} on the way)" if r["incoming"] else ""
             lines.append(f"{r['emoji']} {r['name']}: {r['stock']}{extra} · sold {r['sold_30d']} in 30d")
@@ -166,7 +166,7 @@ class BotHandler:
 
     def profit_text(self, db: Session) -> str:
         p30, p7 = services.profit_summary(db, 30), services.profit_summary(db, 7)
-        return (f"💰 Profit\n7 days: {p7['profit_tmt']:.0f} TMT on {p7['revenue_tmt']:.0f} revenue ({p7['units']} units)\n"
+        return (f"Profit\n7 days: {p7['profit_tmt']:.0f} TMT on {p7['revenue_tmt']:.0f} revenue ({p7['units']} units)\n"
                 f"30 days: {p30['profit_tmt']:.0f} TMT on {p30['revenue_tmt']:.0f} revenue ({p30['units']} units, "
                 f"margin {p30['margin_pct']:.0f}%)")
 
@@ -174,7 +174,7 @@ class BotHandler:
         orders = db.scalars(select(Order).order_by(Order.id.desc()).limit(6)).all()
         if not orders:
             return "No orders yet."
-        lines = ["🧾 Orders"]
+        lines = ["Orders"]
         for o in orders:
             s = services.order_summary(db, o)
             t = s["totals"]
@@ -192,11 +192,11 @@ class BotHandler:
             items = ", ".join(f"{i['product']} ×{i['qty']}" for i in d["items"]) or "—"
             flags = []
             if s.delivered_at:
-                flags.append("delivered ✓")
+                flags.append("delivered")
             if s.cash_received_at:
-                flags.append("cash ✓")
+                flags.append("cash received")
             eta = f"\nETA {d['eta']['earliest']}–{d['eta']['latest']}" if d.get("eta") else ""
-            text = f"🚚 {s.code or '#' + str(s.id)} — {STATUS_LABEL.get(s.status, s.status)}{eta}\n{items}" + \
+            text = f"{s.code or '#' + str(s.id)} — {STATUS_LABEL.get(s.status, s.status)}{eta}\n{items}" + \
                    (f"\n{' · '.join(flags)}" if flags else "")
             self.api.send_message(chat_id, text, buttons=[[{"text": t, "callback_data": f"ship:{s.id}:{st}"}
                                                            for t, st in STATUS_BUTTONS]])
@@ -219,14 +219,14 @@ class BotHandler:
             return
         res = services.record_sale(db, prod, parsed.qty, parsed.unit_price, source="bot", note=f"tg:{chat_id}")
         profit = f"profit {res['profit_tmt']:.0f} TMT" if res["profit_tmt"] is not None else "profit unknown (no cost yet)"
-        reply = (f"✅ Logged {parsed.qty} × {prod.name} at {parsed.unit_price:.0f} TMT = {parsed.total:.0f} TMT\n"
+        reply = (f"Logged {parsed.qty} × {prod.name} at {parsed.unit_price:.0f} TMT = {parsed.total:.0f} TMT\n"
                  f"{profit} · stock left: {res['stock']}")
         if res.get("warning"):
-            reply += f"\n⚠ {res['warning']}"
+            reply += f"\n{res['warning']}"
         self.api.send_message(chat_id, reply)
         if role == "person":
             for oc in owner_chats(db):
-                self.api.send_message(oc, f"🧾 Sale by your person: {reply}")
+                self.api.send_message(oc, f"Sale by your person: {reply}")
 
     # ------------------------------------------------------------------ buttons
     def _callback(self, db: Session, cq: dict) -> None:
@@ -248,10 +248,10 @@ class BotHandler:
                 return
             label = STATUS_LABEL.get(parts[2], parts[2])
             self.api.answer_callback(cq["id"], f"Marked {label}")
-            self.api.send_message(chat_id, f"✅ {ship.code or ship.id}: {label}")
+            self.api.send_message(chat_id, f"{ship.code or ship.id}: {label}")
             if role == "person":
                 for oc in owner_chats(db):
-                    self.api.send_message(oc, f"📣 Your person marked shipment {ship.code or ship.id}: {label}")
+                    self.api.send_message(oc, f"Your person marked shipment {ship.code or ship.id}: {label}")
         else:
             self.api.answer_callback(cq["id"], "")
 
