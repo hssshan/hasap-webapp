@@ -12,12 +12,29 @@ the moment you paste its key into `.env` and restart.
 
 ## 1. Run it (one command)
 
-You need Python 3.10+ (or Docker).
+### Windows
+1. Install **Python 3.12** from https://www.python.org/downloads/. On the first installer screen tick
+   **"Add python.exe to PATH"**.
+2. Get the code: on GitHub open the repo, switch to branch `claude/sourcing-copilot-resale-xjcr4h`,
+   then **Code → Download ZIP** and unzip it (or `git clone` it, see below).
+3. Open the unzipped folder, go into `sourcing-copilot`, and **double-click `run.bat`**.
+   The first start installs packages (a few minutes).
 
+With Git installed, from Command Prompt:
+```bat
+git clone -b claude/sourcing-copilot-resale-xjcr4h https://github.com/hssshan/hasap-webapp.git
+cd hasap-webapp\sourcing-copilot
+run.bat
+```
+
+### Mac / Linux
 ```bash
 cd sourcing-copilot
-./run.sh            # Mac / Linux   (Windows: double-click run.bat)
-# or
+./run.sh
+```
+
+### Docker (any OS)
+```bash
 docker compose up -d --build
 ```
 
