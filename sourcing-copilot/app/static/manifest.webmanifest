@@ -1,0 +1,16 @@
+{
+  "name": "Sourcing Copilot",
+  "short_name": "Copilot",
+  "description": "What to order, where to buy, what to sell it for.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f5f6f8",
+  "theme_color": "#e8590c",
+  "icons": [
+    {"src": "/static/icons/icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "/static/icons/icon-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "/static/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"},
+    {"src": "/static/icons/icon.svg", "sizes": "any", "type": "image/svg+xml"}
+  ]
+}
